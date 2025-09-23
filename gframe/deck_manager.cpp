@@ -65,24 +65,26 @@ bool DeckManager::LoadLFListSingle(const epro::path_string& path) {
 		}
 		if(!lflist.hash)
 			continue;
-		auto p = str.find(' ');
-		if(p == std::string::npos)
+	std::istringstream iss(str);
+		uint32_t code = 0;
+		int limit = 3;
+		int points = 0;
+
+		iss >> code >> limit;
+
+		if (iss.fail() || code == 0)
 			continue;
-		auto c = str.find_first_not_of("-0123456789", p + 1);
-		if(c != std::string::npos)
-			c -= p;
-		try {
-			auto code = static_cast<uint32_t>(std::stoul(str.substr(0, p)));
-			if(code == 0)
-				continue;
-			auto count = static_cast<int32_t>(std::stol(str.substr(p, c)));
-			lflist.content[code] = count;
-			lflist.hash = lflist.hash ^ ((code << 18) | (code >> 14)) ^ ((code << (27 + count)) | (code >> (5 - count)));
+
+		if (!(iss >> points)) {
+			points = 0; // Points are optional
 		}
-		catch(...){}
+
+		lflist.content[code] = BanlistEntry{ limit, points };
+		lflist.hash = lflist.hash ^ ((code << 18) | (code >> 14)) ^ ((code << (27 + limit)) | (code >> (5 - limit)));
 	}
-	if(lflist.hash)
-		_lfList.push_back(lflist);
+
+	if (lflist.hash)
+		_lfList.push_back(std::move(lflist));
 	return loaded;
 }
 bool DeckManager::LoadLFListFolder(epro::path_stringview _path) {
@@ -145,6 +147,13 @@ int DeckManager::TypeCount(const Deck::Vector& cards, uint32_t type) {
 	}
 	return count;
 }
+int DeckManager::CountPoints(const Deck::Vector& cards, const LFList* lflist) {
+	int count = 0;
+	for(const auto& card : cards) {
+		count += lflist->GetCardPoints(card);
+		}
+	return count;
+}
 int DeckManager::CountLegends(const Deck::Vector& cards, uint32_t type) {
 	int count = 0;
 	for(const auto& card : cards) {
@@ -190,13 +199,14 @@ static DeckError CheckCards(const Deck::Vector& cards, LFList const* curlist,
 			return additional;
 		}
 		uint32_t code = cit->alias ? cit->alias : cit->code;
-		ccount[code]++;
-		int dc = ccount[code];
+
+		ccount[code].limit++;
+		int dc = ccount[code].limit;
 		if (dc > 3)
 			return ret.type = DeckError::CARDCOUNT, ret;
 		auto it = curlist->GetLimitationIterator(cit);
 		auto is_end = it == curlist->content.end();
-		if ((!is_end && dc > it->second) || (curlist->whitelist && is_end))
+		if ((!is_end && dc > it->second.limit) || (curlist->whitelist && is_end))
 			return ret.type = DeckError::LFLIST, ret;
 	}
 	return { DeckError::NONE };

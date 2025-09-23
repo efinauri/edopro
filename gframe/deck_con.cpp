@@ -1224,7 +1224,7 @@ bool DeckBuilder::CheckCardProperties(const CardDataM& data) {
 			if(filterList->whitelist)
 				count = -1;
 		} else
-			count = flit->second;
+			count = flit->second.limit;
 		switch(filter_lm) {
 			case LIMITATION_FILTER_BANNED:
 			case LIMITATION_FILTER_LIMITED:
@@ -1397,6 +1397,7 @@ void DeckBuilder::ClearDeck() {
 	main_legend_count_spell = 0;
 	main_legend_count_trap = 0;
 	main_skill_count = 0;
+	points_count = 0;
 	main_monster_count = 0;
 	main_spell_count = 0;
 	main_trap_count = 0;
@@ -1416,6 +1417,8 @@ void DeckBuilder::RefreshLimitationStatus() {
 	main_legend_count_spell = DeckManager::CountLegends(current_deck.main, TYPE_SPELL);
 	main_legend_count_trap = DeckManager::CountLegends(current_deck.main, TYPE_TRAP);
 	main_skill_count = DeckManager::TypeCount(current_deck.main, TYPE_SKILL);
+	auto filterList = &gdeckManager->_lfList[mainGame->cbDBLFList->getSelected()];
+	points_count = DeckManager::CountPoints(current_deck.main, filterList) + DeckManager::CountPoints(current_deck.extra, filterList) + DeckManager::CountPoints(current_deck.side, filterList);
 	main_monster_count = DeckManager::TypeCount(current_deck.main, TYPE_MONSTER);
 	main_spell_count = DeckManager::TypeCount(current_deck.main, TYPE_SPELL);
 	main_trap_count = DeckManager::TypeCount(current_deck.main, TYPE_TRAP);
@@ -1431,6 +1434,10 @@ void DeckBuilder::RefreshLimitationStatus() {
 	side_trap_count = DeckManager::TypeCount(current_deck.side, TYPE_TRAP);
 }
 void DeckBuilder::RefreshLimitationStatusOnRemoved(const CardDataC* card, DeckType location) {
+	printf("card being removed");
+	auto filterList = &gdeckManager->_lfList[mainGame->cbDBLFList->getSelected()];
+	points_count -= filterList->GetCardPoints(card);
+	printf("points count is now %d\n", points_count);
 	switch(location) {
 		case DeckType::MAIN:
 		{
@@ -1482,6 +1489,11 @@ void DeckBuilder::RefreshLimitationStatusOnRemoved(const CardDataC* card, DeckTy
 	}
 }
 void DeckBuilder::RefreshLimitationStatusOnAdded(const CardDataC* card, DeckType location) {
+//todo update points
+printf("card being added");
+	auto filterList = &gdeckManager->_lfList[mainGame->cbDBLFList->getSelected()];
+	points_count += filterList->GetCardPoints(card);
+	printf("points count is now %d\n", points_count);
 	switch(location) {
 		case DeckType::MAIN:
 		{
@@ -1635,7 +1647,7 @@ bool DeckBuilder::check_limit(const CardDataC* pointer) {
 	auto endit = filterList->content.end();
 	auto it = filterList->GetLimitationIterator(pointer);
 	if(it != endit)
-		limit = it->second;
+		limit = it->second.limit;
 	if(limit == 0)
 		return false;
 	const auto& deck = current_deck;
@@ -1643,9 +1655,9 @@ bool DeckBuilder::check_limit(const CardDataC* pointer) {
 		for(auto& pcard : *plist) {
 			if(pcard->code == limitcode || pcard->alias == limitcode) {
 				if((it = filterList->content.find(pcard->code)) != endit)
-					limit = std::min(limit, it->second);
+					limit = std::min(limit, it->second.limit);
 				else if((it = filterList->content.find(pcard->alias)) != endit)
-					limit = std::min(limit, it->second);
+					limit = std::min(limit, it->second.limit);
 				found++;
 			}
 			if(limit <= found)

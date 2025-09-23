@@ -129,6 +129,7 @@ public:
 	int prev_deck;
 	int prev_operation;
 
+	uint16_t points_count;
 	uint16_t main_monster_count;
 	uint16_t main_spell_count;
 	uint16_t main_trap_count;
@@ -150,4 +151,4 @@ public:
 
 }
 
-#endif //DECK_CON
+#endif //DECK_CON_H

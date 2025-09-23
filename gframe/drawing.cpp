@@ -1183,11 +1183,14 @@ void Game::DrawThumb(const CardDataC* cp, irr::core::vector2di pos, LFList* lfli
 	auto code = cp->code;
 	auto flit = lflist->GetLimitationIterator(cp);
 	int count = 3;
+	int points = 0;
 	if(flit == lflist->content.end()) {
 		if(lflist->whitelist)
 			count = -1;
-	} else
-		count = flit->second;
+	} else {
+		count = flit->second.limit;
+		points = flit->second.points;
+ 	}
 	irr::video::ITexture* img = load_image ? imageManager.GetTextureCard(code, imgType::THUMB) : imageManager.tUnknown;
 	if (!img)
 		return;
@@ -1202,6 +1205,27 @@ void Game::DrawThumb(const CardDataC* cp, irr::core::vector2di pos, LFList* lfli
 	}
 	driver->draw2DImage(img, dragloc, irr::core::recti(0, 0, size.Width, size.Height), cliprect);
 	if(!is_siding) {
+		if (points > 0) {
+			irr::gui::IGUIFont* font = device->getGUIEnvironment()->getSkin()->getFont();
+			if (font) {
+				irr::core::stringw str;
+				str += points;
+				irr::video::SColor outlineColor(255, 0, 0, 0); // Black
+				irr::video::SColor textColor(255, 255, 255, 255); // White
+				irr::core::position2di offsetPos[] = {
+					{ -1, -1 }, { 0, -1 }, { 1, -1 },
+					{ -1,  0 },           { 1,  0 },
+					{ -1,  1 }, { 0,  1 }, { 1,  1 }
+				};
+				for (auto& offset : offsetPos) {
+					irr::core::recti shadowRect = limitloc;
+					shadowRect += offset;
+					font->draw(str.c_str(), shadowRect, outlineColor, true, true, cliprect);
+				}
+				font->draw(str.c_str(), limitloc, textColor, true, true, cliprect);
+			}
+		}
+
 		switch(count) {
 			case -1:
 			case 0:

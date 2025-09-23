@@ -4,6 +4,7 @@
 #include <cstring>
 #include <sqlite3.h>
 #include <IReadFile.h>
+#include <cstdint>
 
  //===========================================================================
 
