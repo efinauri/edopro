@@ -9,7 +9,7 @@ CARDS_TXT_PATH = "genesys_cards.txt"
 
 DELTA_LOCAL_CDB = os.path.expanduser("./repositories/babel-cdb/cards.delta.cdb")
 DELTA_RAW_CDB_URL = "https://github.com/ProjectIgnis/BabelCDB/raw/refs/heads/master/cards.cdb"
-OUTPUT_BANLIST_PATH = os.path.expanduser("~/Games/ProjectIgnis/lflists/genesys.txt")
+OUTPUT_BANLIST_PATH = os.path.expanduser("~/Games/ProjectIgnis/lflists/genesys.lflist.conf")
 
 DEFAULT_HEADERS = {
     "accept": "application/json, text/javascript, */*; q=0.01",
@@ -19,10 +19,9 @@ DEFAULT_HEADERS = {
     "x-requested-with": "XMLHttpRequest",
     "user-agent": "Mozilla/5.0",
 }
-DEFAULT_COOKIES = {}
 
 def ensure_delta_cdb_local(path=DELTA_LOCAL_CDB, remote=DELTA_RAW_CDB_URL):
-    if os.path.isfile(path):
+    if os.path.isfile(path) and os.path.getsize(path) > 0:
         return path
     os.makedirs(os.path.dirname(path), exist_ok=True)
     r = requests.get(remote, timeout=30)
@@ -33,9 +32,8 @@ def ensure_delta_cdb_local(path=DELTA_LOCAL_CDB, remote=DELTA_RAW_CDB_URL):
 
 def fetch_points_page(session, page, results_per_page=100):
     data = {
-        "currentPage": page,
-        "resultsPerPage": results_per_page,
-        "searchTerm": "",
+        "currentPage": str(page),
+        "resultsPerPage": str(results_per_page),
     }
     resp = session.post(POINTS_API, data=urlencode(data), timeout=30)
     resp.raise_for_status()
@@ -44,21 +42,19 @@ def fetch_points_page(session, page, results_per_page=100):
 def fetch_all_cards():
     sess = requests.Session()
     sess.headers.update(DEFAULT_HEADERS)
-    if DEFAULT_COOKIES:
-        sess.cookies.update(DEFAULT_COOKIES)
 
-    first = fetch_points_page(sess, 1)
+    first = fetch_points_page(sess, page=1, results_per_page=100)
     if first.get("Success") != "Success" or "Result" not in first:
-        raise Exception("Unexpected API response for page 1")
+        raise Exception(f"Unexpected API response for page 1: {first}")
 
     result = first["Result"]
-    total_pages = int(result.get("TotalPages", 1))
+    total_pages = int(result.get("TotalPages", 1)) or 1
     results = list(result.get("Results", []))
 
-    for p in range(2, total_pages + 1):
-        page_json = fetch_points_page(sess, p)
+    for p in range(2, total_pages + 2):
+        page_json = fetch_points_page(sess, page=p, results_per_page=100)
         if page_json.get("Success") != "Success" or "Result" not in page_json:
-            raise Exception(f"Unexpected API response for page {p}")
+            raise Exception(f"Unexpected API response for page {p}: {page_json}")
         results.extend(page_json["Result"].get("Results", []))
 
     cards = []
