@@ -51,3 +51,5 @@ NotoSansJP-Regular.otf
 /libluasocket.so
 /upx
 /vcpkg/installed_x64-linux.7z
+/build_and_test.sh
+/CMakeLists.txt

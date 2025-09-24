@@ -472,6 +472,7 @@ bool DeckBuilder::OnEvent(const irr::SEvent& event) {
 			case EDITBOX_DEFENSE:
 			case EDITBOX_STAR:
 			case EDITBOX_SCALE:
+			case EDITBOX_COST:
 			case EDITBOX_KEYWORD: {
 				StartFilter();
 				break;
@@ -494,6 +495,7 @@ bool DeckBuilder::OnEvent(const irr::SEvent& event) {
 				break;
 			}
 			case EDITBOX_STAR:
+			case EDITBOX_COST:
 			case EDITBOX_SCALE: {
 				StartFilter();
 				break;
@@ -1031,6 +1033,8 @@ bool DeckBuilder::FiltersChanged() {
 	CHECK_AND_SET(filter_scl);
 	CHECK_AND_SET(filter_marks);
 	CHECK_AND_SET(filter_lm);
+	CHECK_AND_SET(filter_costtype);
+	CHECK_AND_SET(filter_cost);
 	return res;
 }
 #undef CHECK_AND_SET
@@ -1049,6 +1053,11 @@ void DeckBuilder::StartFilter(bool force_refresh) {
 		filter_def = parse_filter(mainGame->ebDefense->getText(), filter_deftype);
 		filter_lv = parse_filter(mainGame->ebStar->getText(), filter_lvtype);
 		filter_scl = parse_filter(mainGame->ebScale->getText(), filter_scltype);
+	}
+	{
+		irr::gui::IGUIElement* costBox = mainGame->env->getRootGUIElement()->getElementFromId(EDITBOX_COST);
+		const wchar_t* txt = costBox ? static_cast<irr::gui::IGUIEditBox*>(costBox)->getText() : L"";
+		filter_cost = parse_filter(txt, filter_costtype);
 	}
 	FilterCards(force_refresh);
 	GetHoveredCard();
@@ -1212,6 +1221,14 @@ bool DeckBuilder::CheckCardProperties(const CardDataM& data) {
 			return false;
 		break;
 	}
+	}
+	if(filter_costtype) {
+		auto* list = &gdeckManager->_lfList[mainGame->cbDBLFList->getSelected()];
+		const int cost = list ? list->GetCardPoints(&data._data) : 0;
+		if((filter_costtype == 1 && cost != filter_cost) || (filter_costtype == 2 && cost < filter_cost)
+			|| (filter_costtype == 3 && cost <= filter_cost) || (filter_costtype == 4 && cost > filter_cost)
+			|| (filter_costtype == 5 && cost >= filter_cost) || filter_costtype == 6)
+			return false;
 	}
 	if(filter_effect && !(data._data.category & filter_effect))
 		return false;
@@ -1434,10 +1451,8 @@ void DeckBuilder::RefreshLimitationStatus() {
 	side_trap_count = DeckManager::TypeCount(current_deck.side, TYPE_TRAP);
 }
 void DeckBuilder::RefreshLimitationStatusOnRemoved(const CardDataC* card, DeckType location) {
-	printf("card being removed");
-	auto filterList = &gdeckManager->_lfList[mainGame->cbDBLFList->getSelected()];
-	points_count -= filterList->GetCardPoints(card);
-	printf("points count is now %d\n", points_count);
+	auto flist = &gdeckManager->_lfList[mainGame->cbDBLFList->getSelected()];
+	points_count -= flist->GetCardPoints(card);
 	switch(location) {
 		case DeckType::MAIN:
 		{
@@ -1489,11 +1504,8 @@ void DeckBuilder::RefreshLimitationStatusOnRemoved(const CardDataC* card, DeckTy
 	}
 }
 void DeckBuilder::RefreshLimitationStatusOnAdded(const CardDataC* card, DeckType location) {
-//todo update points
-printf("card being added");
-	auto filterList = &gdeckManager->_lfList[mainGame->cbDBLFList->getSelected()];
-	points_count += filterList->GetCardPoints(card);
-	printf("points count is now %d\n", points_count);
+	auto flist = &gdeckManager->_lfList[mainGame->cbDBLFList->getSelected()];
+	points_count += flist->GetCardPoints(card);
 	switch(location) {
 		case DeckType::MAIN:
 		{

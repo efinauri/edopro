@@ -103,6 +103,8 @@ private:
 	DECLARE_WITH_CACHE(uint32_t, filter_lvtype)
 	DECLARE_WITH_CACHE(uint32_t, filter_lv)
 	DECLARE_WITH_CACHE(uint32_t, filter_scltype)
+	DECLARE_WITH_CACHE(uint32_t, filter_cost)
+	DECLARE_WITH_CACHE(uint32_t, filter_costtype)
 	DECLARE_WITH_CACHE(uint32_t, filter_scl)
 	DECLARE_WITH_CACHE(uint32_t, filter_marks)
 	DECLARE_WITH_CACHE(limitation_search_filters, filter_lm)
