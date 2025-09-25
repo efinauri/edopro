@@ -45,3 +45,13 @@ premake5.exe
 !/irrlicht/defines.lua
 bundled_font.cpp
 NotoSansJP-Regular.otf
+/example.so
+/genesys_banlist.lflist.conf
+/genesys_cards.txt
+/libluasocket.so
+/upx
+/vcpkg/installed_x64-linux.7z
+/build_and_test.sh
+/CMakeLists.txt
+/repositories/babel-cdb/cards.delta.cdb
+/genesys.lflist.conf

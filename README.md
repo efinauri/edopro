@@ -1,39 +1,63 @@
-# [Project Ignis](https://github.com/ProjectIgnis): EDOPro
+# Genesys Deckbuilder
 
-The bleeding-edge automatic duel simulator, a fork of the [YGOPro client](https://github.com/Fluorohydride/ygopro).
+Minor client modifications to support the Genesys banlists in the EDOPro deckbuilder.
 
-All YGOPro forks and known automatic duel simulators are powered by the [YGOPro core (ocgcore)](https://github.com/Fluorohydride/ygopro-core), an automated scripting engine for the Yu-Gi-Oh! Official Card Game. EDOPro is powered by our own [ocgcore fork](https://github.com/edo9300/ygopro-core).
+![client.png](client.png)
 
-Due to many accumulated changes in this client and its core, it is incompatible with simulators not derived from this fork.
+1. Support for point-based banlists
+2. Point costs are displayed on each card
+3. The total point cost of the deck is maintained on the top right of the screen
+4. ATK/DEF filters are compressed together in a single Stats label
+5. New points filter, with 2 independent inputs to achieve conditions of the type `A < x < B`
 
-This repository is for the game client only. Related Ignis projects:
-- [Canonical card script collection](https://github.com/ProjectIgnis/CardScripts)
-- [Canonical card databases collection](https://github.com/ProjectIgnis/BabelCdb)
-- [WindBot Ignite](https://github.com/ProjectIgnis/windbot/)
+## Installation
 
-## Contributing
+Every mentioned path is relative to your preexisting edopro installation (the folder where you have your `EDOPro` executable).
 
-Please keep all usage questions and Windows and macOS bug reports on Discord; do not open an issue or pull request for this purpose.
-We are not taking suggestions or feature requests and the issue tracker is not to be used for this purpose either.
+- Generate the banlist file and move the generated `genesys.lflist.conf` inside `/lflists`.
 
-Otherwise, pull requests are welcome! It might take some time for them to be evaluated since we are pretty swamped with a lot work to be done.
+```bash
+python3 generate_genesys_banlist.py
+```
 
-Check out the [wiki](https://github.com/edo9300/edopro/wiki/) for possibly outdated build instructions and a partial user manual.
+- Add the these lines to `/config/strings.conf`:
 
-## Project Ignis
+```
+!system 3315 Points:
+!system 3316 Stats:
+```
 
-We are an international, open-source collaboration staffed entirely by volunteers and we welcome support on our projects.
-Reach out to us on Discord to learn how to contribute and join!
+- Compile this project following the official [instructions](https://github.com/edo9300/edopro/wiki/1.-Prerequisites), except for the repository you're cloning:
 
-_Ignis_ is the fire and light of knowledge passed from the gods to humanity in Greco-Roman mythology.
-This represents our vision for all of our projects and work and recognizes the contribution of every individual on the team.
+```bash
+git clone https://github.com/efinauri/edopro.git edopro_genesys
+cd edopro_genesys
+git submodule update --init --recursive
+./travis/install-premake5.sh windows|linux|osx
+```
 
-[Debut announcement on Reddit](https://www.reddit.com/r/yugioh/comments/fvdn7v/presenting_project_ignis_edopro_the_opensource/).
+- Take the `ygoprodll` executable and place it in the same directory as the `EDOPro` executable.
 
-## License
+## Maintaining the banlist
 
-EDOPro is free/libre and open source software licensed under the GNU Affero General Public License, version 3 or later.
-Dependencies and resources may be provided under different licenses.
-Please see [LICENSE](https://github.com/edo9300/edopro/blob/master/LICENSE) and [COPYING](https://github.com/edo9300/edopro/blob/master/COPYING) for more details.
+You can rerun the script every time the official [cardlist](https://registration.yugioh-card.com/genesys/CardList/) updates.
 
-Yu-Gi-Oh! is a trademark of Shueisha and Konami. This project is not affiliated with or endorsed by Shueisha or Konami.
+Pay attention to the script ouput, as it lists the cards that could not be matched against EDOPro's current card database.
+For example, at the time of writing, DOOD is still not promoted as a TCG set, and as such the cards from that set with a point cost cannot be automatically added:
+
+```
+[!] 2 cards were not found in the database:
+  - Dominus Spiral 10
+  - K9-04 Noroi 10
+```
+
+If you need to modify it manually, you can add entries in the form of `<card id> <maximum copies> <point cost>`. Here's the first lines of a Genesys banlist for reference:
+
+```
+!Genesys
+21044178 3 100
+9464441 3 20
+62320425 3 50
+38811586 3 33
+[...]
+```

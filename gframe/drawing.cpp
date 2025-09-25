@@ -1183,11 +1183,14 @@ void Game::DrawThumb(const CardDataC* cp, irr::core::vector2di pos, LFList* lfli
 	auto code = cp->code;
 	auto flit = lflist->GetLimitationIterator(cp);
 	int count = 3;
+	int points = 0;
 	if(flit == lflist->content.end()) {
 		if(lflist->whitelist)
 			count = -1;
-	} else
-		count = flit->second;
+	} else {
+		count = flit->second.limit;
+		points = flit->second.points;
+ 	}
 	irr::video::ITexture* img = load_image ? imageManager.GetTextureCard(code, imgType::THUMB) : imageManager.tUnknown;
 	if (!img)
 		return;
@@ -1202,6 +1205,27 @@ void Game::DrawThumb(const CardDataC* cp, irr::core::vector2di pos, LFList* lfli
 	}
 	driver->draw2DImage(img, dragloc, irr::core::recti(0, 0, size.Width, size.Height), cliprect);
 	if(!is_siding) {
+		if (points > 0) {
+			irr::gui::IGUIFont* font = device->getGUIEnvironment()->getSkin()->getFont();
+			if (font) {
+				irr::core::stringw str;
+				str += points;
+				irr::video::SColor outlineColor(255, 0, 0, 0); // Black
+				irr::video::SColor textColor(255, 255, 255, 255); // White
+				irr::core::position2di offsetPos[] = {
+					{ -1, -1 }, { 0, -1 }, { 1, -1 },
+					{ -1,  0 },           { 1,  0 },
+					{ -1,  1 }, { 0,  1 }, { 1,  1 }
+				};
+				for (auto& offset : offsetPos) {
+					irr::core::recti shadowRect = limitloc;
+					shadowRect += offset;
+					font->draw(str.c_str(), shadowRect, outlineColor, true, true, cliprect);
+				}
+				font->draw(str.c_str(), limitloc, textColor, true, true, cliprect);
+			}
+		}
+
 		switch(count) {
 			case -1:
 			case 0:
@@ -1266,10 +1290,11 @@ void Game::DrawDeckBd() {
 		const auto main_deck_size_str = GetDeckSizeStr(current_deck.main, gdeckManager->pre_deck.main);
 		DrawShadowText(numFont, main_deck_size_str, Resize(379, 137, 439, 157), Resize(1, 1, 1, 1), 0xffffffff, 0xff000000, false, true);
 
-		const auto main_types_count_str = epro::format(L"{} {} {} {} {} {}",
+		const auto main_types_count_str = epro::format(L"{} {} {} {} {} {} Points: {}",
 													  gDataManager->GetSysString(1312), deckBuilder.main_monster_count,
 													  gDataManager->GetSysString(1313), deckBuilder.main_spell_count,
-													  gDataManager->GetSysString(1314), deckBuilder.main_trap_count);
+													  gDataManager->GetSysString(1314), deckBuilder.main_trap_count,
+													  deckBuilder.points_count);
 
 		const auto mainpos = Resize(310, 137, 797, 157);
 		const auto mainDeckTypeSize = textFont->getDimensionustring(main_types_count_str);

@@ -472,6 +472,8 @@ bool DeckBuilder::OnEvent(const irr::SEvent& event) {
 			case EDITBOX_DEFENSE:
 			case EDITBOX_STAR:
 			case EDITBOX_SCALE:
+			case EDITBOX_COST_FROM:
+			case EDITBOX_COST_TO:
 			case EDITBOX_KEYWORD: {
 				StartFilter();
 				break;
@@ -494,6 +496,8 @@ bool DeckBuilder::OnEvent(const irr::SEvent& event) {
 				break;
 			}
 			case EDITBOX_STAR:
+			case EDITBOX_COST_FROM:
+			case EDITBOX_COST_TO:
 			case EDITBOX_SCALE: {
 				StartFilter();
 				break;
@@ -510,6 +514,7 @@ bool DeckBuilder::OnEvent(const irr::SEvent& event) {
 			case COMBOBOX_DBLFLIST: {
 				filterList = &gdeckManager->_lfList[mainGame->cbDBLFList->getSelected()];
 				mainGame->ReloadCBLimit();
+					mainGame->deckBuilder.RefreshLimitationStatus();
 				StartFilter(true);
 				break;
 			}
@@ -1031,6 +1036,10 @@ bool DeckBuilder::FiltersChanged() {
 	CHECK_AND_SET(filter_scl);
 	CHECK_AND_SET(filter_marks);
 	CHECK_AND_SET(filter_lm);
+	CHECK_AND_SET(filter_cost1);
+	CHECK_AND_SET(filter_cost1type);
+	CHECK_AND_SET(filter_cost2);
+	CHECK_AND_SET(filter_cost2type);
 	return res;
 }
 #undef CHECK_AND_SET
@@ -1050,6 +1059,8 @@ void DeckBuilder::StartFilter(bool force_refresh) {
 		filter_lv = parse_filter(mainGame->ebStar->getText(), filter_lvtype);
 		filter_scl = parse_filter(mainGame->ebScale->getText(), filter_scltype);
 	}
+	filter_cost1 = parse_filter(mainGame->ebCost1->getText(), filter_cost1type);
+	filter_cost2 = parse_filter(mainGame->ebCost2->getText(), filter_cost2type);
 	FilterCards(force_refresh);
 	GetHoveredCard();
 }
@@ -1213,6 +1224,22 @@ bool DeckBuilder::CheckCardProperties(const CardDataM& data) {
 		break;
 	}
 	}
+	if(filter_cost1type) {
+		auto* list = &gdeckManager->_lfList[mainGame->cbDBLFList->getSelected()];
+		const int cost = list ? list->GetCardPoints(&data._data) : 0;
+		if((filter_cost1type == 1 && cost != filter_cost1) || (filter_cost1type == 2 && cost < filter_cost1)
+			|| (filter_cost1type == 3 && cost <= filter_cost1) || (filter_cost1type == 4 && cost > filter_cost1)
+			|| (filter_cost1type == 5 && cost >= filter_cost1) || filter_cost1type == 6)
+			return false;
+	}
+	if(filter_cost2type) {
+		auto* list = &gdeckManager->_lfList[mainGame->cbDBLFList->getSelected()];
+		const int cost = list ? list->GetCardPoints(&data._data) : 0;
+		if((filter_cost2type == 1 && cost != filter_cost2) || (filter_cost2type == 2 && cost < filter_cost2)
+			|| (filter_cost2type == 3 && cost <= filter_cost2) || (filter_cost2type == 4 && cost > filter_cost2)
+			|| (filter_cost2type == 5 && cost >= filter_cost2) || filter_cost2type == 6)
+			return false;
+	}
 	if(filter_effect && !(data._data.category & filter_effect))
 		return false;
 	if(filter_marks && (data._data.link_marker & filter_marks) != filter_marks)
@@ -1224,7 +1251,7 @@ bool DeckBuilder::CheckCardProperties(const CardDataM& data) {
 			if(filterList->whitelist)
 				count = -1;
 		} else
-			count = flit->second;
+			count = flit->second.limit;
 		switch(filter_lm) {
 			case LIMITATION_FILTER_BANNED:
 			case LIMITATION_FILTER_LIMITED:
@@ -1335,6 +1362,8 @@ void DeckBuilder::ClearSearch() {
 	mainGame->ebStar->setEnabled(false);
 	mainGame->ebScale->setEnabled(false);
 	mainGame->ebCardName->setText(L"");
+	mainGame->ebCost1->setText(L"");
+	mainGame->ebCost2->setText(L"");
 	mainGame->scrFilter->setVisible(false);
 	searched_terms.clear();
 	ClearFilter();
@@ -1397,6 +1426,7 @@ void DeckBuilder::ClearDeck() {
 	main_legend_count_spell = 0;
 	main_legend_count_trap = 0;
 	main_skill_count = 0;
+	points_count = 0;
 	main_monster_count = 0;
 	main_spell_count = 0;
 	main_trap_count = 0;
@@ -1416,6 +1446,8 @@ void DeckBuilder::RefreshLimitationStatus() {
 	main_legend_count_spell = DeckManager::CountLegends(current_deck.main, TYPE_SPELL);
 	main_legend_count_trap = DeckManager::CountLegends(current_deck.main, TYPE_TRAP);
 	main_skill_count = DeckManager::TypeCount(current_deck.main, TYPE_SKILL);
+	auto filterList = &gdeckManager->_lfList[mainGame->cbDBLFList->getSelected()];
+	points_count = DeckManager::CountPoints(current_deck.main, filterList) + DeckManager::CountPoints(current_deck.extra, filterList) + DeckManager::CountPoints(current_deck.side, filterList);
 	main_monster_count = DeckManager::TypeCount(current_deck.main, TYPE_MONSTER);
 	main_spell_count = DeckManager::TypeCount(current_deck.main, TYPE_SPELL);
 	main_trap_count = DeckManager::TypeCount(current_deck.main, TYPE_TRAP);
@@ -1431,6 +1463,8 @@ void DeckBuilder::RefreshLimitationStatus() {
 	side_trap_count = DeckManager::TypeCount(current_deck.side, TYPE_TRAP);
 }
 void DeckBuilder::RefreshLimitationStatusOnRemoved(const CardDataC* card, DeckType location) {
+	auto flist = &gdeckManager->_lfList[mainGame->cbDBLFList->getSelected()];
+	points_count -= flist->GetCardPoints(card);
 	switch(location) {
 		case DeckType::MAIN:
 		{
@@ -1482,6 +1516,8 @@ void DeckBuilder::RefreshLimitationStatusOnRemoved(const CardDataC* card, DeckTy
 	}
 }
 void DeckBuilder::RefreshLimitationStatusOnAdded(const CardDataC* card, DeckType location) {
+	auto flist = &gdeckManager->_lfList[mainGame->cbDBLFList->getSelected()];
+	points_count += flist->GetCardPoints(card);
 	switch(location) {
 		case DeckType::MAIN:
 		{
@@ -1635,7 +1671,7 @@ bool DeckBuilder::check_limit(const CardDataC* pointer) {
 	auto endit = filterList->content.end();
 	auto it = filterList->GetLimitationIterator(pointer);
 	if(it != endit)
-		limit = it->second;
+		limit = it->second.limit;
 	if(limit == 0)
 		return false;
 	const auto& deck = current_deck;
@@ -1643,9 +1679,9 @@ bool DeckBuilder::check_limit(const CardDataC* pointer) {
 		for(auto& pcard : *plist) {
 			if(pcard->code == limitcode || pcard->alias == limitcode) {
 				if((it = filterList->content.find(pcard->code)) != endit)
-					limit = std::min(limit, it->second);
+					limit = std::min(limit, it->second.limit);
 				else if((it = filterList->content.find(pcard->alias)) != endit)
-					limit = std::min(limit, it->second);
+					limit = std::min(limit, it->second.limit);
 				found++;
 			}
 			if(limit <= found)

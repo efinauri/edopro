@@ -103,6 +103,10 @@ private:
 	DECLARE_WITH_CACHE(uint32_t, filter_lvtype)
 	DECLARE_WITH_CACHE(uint32_t, filter_lv)
 	DECLARE_WITH_CACHE(uint32_t, filter_scltype)
+	DECLARE_WITH_CACHE(uint32_t, filter_cost1)
+	DECLARE_WITH_CACHE(uint32_t, filter_cost2)
+	DECLARE_WITH_CACHE(uint32_t, filter_cost1type)
+	DECLARE_WITH_CACHE(uint32_t, filter_cost2type)
 	DECLARE_WITH_CACHE(uint32_t, filter_scl)
 	DECLARE_WITH_CACHE(uint32_t, filter_marks)
 	DECLARE_WITH_CACHE(limitation_search_filters, filter_lm)
@@ -129,6 +133,7 @@ public:
 	int prev_deck;
 	int prev_operation;
 
+	uint16_t points_count;
 	uint16_t main_monster_count;
 	uint16_t main_spell_count;
 	uint16_t main_trap_count;
@@ -150,4 +155,4 @@ public:
 
 }
 
-#endif //DECK_CON
+#endif //DECK_CON_H

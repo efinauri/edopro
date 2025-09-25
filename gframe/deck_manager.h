@@ -11,7 +11,12 @@
 
 namespace ygo {
 
-using banlist_content_t = std::unordered_map<uint32_t, int>;
+	struct BanlistEntry {
+		int limit = 3;
+		int points = 0;
+	};
+using banlist_content_t = std::unordered_map<uint32_t, BanlistEntry>;
+
 using cardlist_type = std::vector<uint32_t>;
 
 struct LFList {
@@ -26,6 +31,14 @@ struct LFList {
 				flit = content.find(pcard->alias);
 		}
 		return flit;
+	}
+	auto GetCardPoints(const CardDataC* pcard) const {
+		auto flit = GetLimitationIterator(pcard);
+		int points = 0;
+		if(flit != content.end()) {
+			points = flit->second.points;
+		}
+		return points;
 	}
 };
 enum class DuelAllowedCards {
@@ -62,6 +75,7 @@ public:
 	static DeckError CheckDeckContent(const Deck& deck, LFList const* lflist, DuelAllowedCards allowedCards, uint32_t forbiddentypes, bool rituals_in_extra);
 	static DeckError CheckDeckSize(const Deck& deck, const DeckSizes& sizes);
 	static int TypeCount(const Deck::Vector& cards, uint32_t type);
+	static int CountPoints(const Deck::Vector& cards, const LFList* flist);
 	static int CountLegends(const Deck::Vector& cards, uint32_t type);
 	static uint32_t LoadDeckFromBuffer(Deck& deck, uint32_t* dbuf, uint32_t mainc, uint32_t sidec, RITUAL_LOCATION rituals_in_extra = RITUAL_LOCATION::DEFAULT);
 	static uint32_t LoadDeck(Deck& deck, const cardlist_type& mainlist, const cardlist_type& sidelist, const cardlist_type* extralist = nullptr, RITUAL_LOCATION rituals_in_extra = RITUAL_LOCATION::DEFAULT);
