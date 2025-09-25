@@ -357,7 +357,8 @@ struct deck_edit_page_elements {
 	irr::gui::IGUIEditBox* ebAttack;
 	irr::gui::IGUIEditBox* ebDefense;
 	irr::gui::IGUIEditBox* ebCardName;
-	irr::gui::IGUIEditBox* ebCost;
+	irr::gui::IGUIEditBox* ebCost1;
+	irr::gui::IGUIEditBox* ebCost2;
 	irr::gui::IGUIButton* btnEffectFilter;
 	irr::gui::IGUIButton* btnStartFilter;
 	irr::gui::IGUIButton* btnClearFilter;

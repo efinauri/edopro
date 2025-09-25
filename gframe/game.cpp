@@ -710,8 +710,10 @@ void Game::Initialize() {
 	ebCardName->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
 	stCost = env->addStaticText(gDataManager->GetSysString(3315).data(), Scale(189, 40, 280, 60), false, false, wFilter);
 	defaultStrings.emplace_back(stCost, 3315);
-	ebCost = AlignElementWithParent(env->addEditBox(L"", Scale(260, 49, 340, 69), true, wFilter, EDITBOX_COST));
-	ebCost->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
+	ebCost1 = AlignElementWithParent(env->addEditBox(L"", Scale(260, 49, 298, 69), true, wFilter, EDITBOX_COST_FROM));
+	ebCost1->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
+	ebCost2 = AlignElementWithParent(env->addEditBox(L"", Scale(302, 49, 340, 69), true, wFilter, EDITBOX_COST_TO));
+	ebCost2->setTextAlignment(irr::gui::EGUIA_CENTER, irr::gui::EGUIA_CENTER);
 	btnEffectFilter = AlignElementWithParent(env->addButton(Scale(345, 28, 390, 69), wFilter, BUTTON_EFFECT_FILTER, gDataManager->GetSysString(1326).data()));
 	defaultStrings.emplace_back(btnEffectFilter, 1326);
 	btnStartFilter = AlignElementWithParent(env->addButton(Scale(327, 96, 390, 118), wFilter, BUTTON_START_FILTER, gDataManager->GetSysString(1327).data()));

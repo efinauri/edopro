@@ -291,7 +291,8 @@ enum GUI {
 	DONT_CHECK_DECK_SIZE,
 	DONT_SHUFFLE_DECK,
 
-	EDITBOX_COST,
+	EDITBOX_COST_FROM,
+	EDITBOX_COST_TO,
 };
 
 class MenuHandler final : public irr::IEventReceiver {
