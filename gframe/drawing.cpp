@@ -1394,14 +1394,8 @@ void Game::DrawDeckBd() {
 		const auto pos = irr::core::recti(ResizeX(809) + size, ResizeY(136), ResizeX(809) + size + 10, ResizeY(156));
 		DrawShadowText(numFont, deckBuilder.result_string, pos, Resize(0, 1, 0, 1), 0xffffffff, 0xff000000, false, true);
 
-		const int costPanelHeight = ResizeY(58);
-		const int resultsTopY = 160;
-		const int resultsBottomY = 630;
-		const int resultsLeftX = 805;
-		const int resultsRightX = 1020;
-
-		DRAWRECT(SEARCH_RESULT, resultsLeftX, resultsTopY, resultsRightX, resultsBottomY - (costPanelHeight / dpi_scale));
-		DRAWOUTLINE(SEARCH_RESULT, resultsLeftX - 1, resultsTopY - 1, resultsRightX, resultsBottomY);
+		DRAWRECT(SEARCH_RESULT, 805, 160, 1020, 630);
+		DRAWOUTLINE(SEARCH_RESULT, 804, 159, 1020, 630);
 
 		const int prev_pos = deckBuilder.scroll_pos;
 		deckBuilder.scroll_pos = floor(scrFilter->getPos() / DECK_SEARCH_SCROLL_STEP);
@@ -1409,7 +1403,7 @@ void Game::DrawDeckBd() {
 		const bool draw_thumb = std::abs(prev_pos - deckBuilder.scroll_pos) < (10.0f * 60.0f / 1000.0f) * delta_time;
 		const int card_position = deckBuilder.scroll_pos;
 		const int height_offset = (scrFilter->getPos() % DECK_SEARCH_SCROLL_STEP) * -1.f * 0.65f;
-		const irr::core::recti rect = Resize(resultsLeftX, resultsTopY, resultsRightX, resultsBottomY - (costPanelHeight / dpi_scale));
+		const irr::core::recti rect = Resize(805, 160, 1020, 630);
 
 		//loads the thumb of one card before and one after to make the scroll smoother
 		int i = (card_position > 0) ? -1 : 0;
@@ -1469,21 +1463,6 @@ void Game::DrawDeckBd() {
 			};
 			DrawShadowTextPos(textFont, GetScopeString(), Resize(859, height_offset + 208 + i * 66, 955, height_offset + 229 + i * 66),
 							  Resize(860, height_offset + 209 + i * 66, 955, height_offset + 229 + i * 66), 0xffffffff, 0xff000000, false, false, &rect);
-		}
-		const auto costPanelTop = resultsBottomY - (costPanelHeight / dpi_scale);
-		DRAWRECT(SEARCH_RESULT, resultsLeftX, costPanelTop, resultsRightX, resultsBottomY);
-		DRAWOUTLINE(SEARCH_RESULT, resultsLeftX - 1, costPanelTop - 1, resultsRightX, resultsBottomY);
-
-		const auto costLabelRect = Resize(resultsLeftX + 8, costPanelTop + 6, resultsLeftX + 8 + 120, costPanelTop + 6 + 18);
-		DrawShadowText(textFont, L"Cost", costLabelRect, Resize(1, 1, 1, 1), 0xffffffff, 0xff000000, false, false);
-
-		const auto costEditRect = Resize(resultsLeftX + 8, costPanelTop + 6 + 18, resultsRightX - 28, costPanelTop + 6 + 18 + 18);
-		if(!env->getRootGUIElement()->getElementFromId(EDITBOX_COST)) {
-			auto* eb = env->addEditBox(L"", costEditRect, true, 0, EDITBOX_COST);
-			eb->setTextAlignment(irr::gui::EGUIA_UPPERLEFT, irr::gui::EGUIA_UPPERLEFT);
-		} else {
-			if(auto* eb = static_cast<irr::gui::IGUIEditBox*>(env->getRootGUIElement()->getElementFromId(EDITBOX_COST)))
-				eb->setRelativePosition(costEditRect);
 		}
 	}
 	if(deckBuilder.is_draging)

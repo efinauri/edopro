@@ -512,6 +512,7 @@ bool DeckBuilder::OnEvent(const irr::SEvent& event) {
 			case COMBOBOX_DBLFLIST: {
 				filterList = &gdeckManager->_lfList[mainGame->cbDBLFList->getSelected()];
 				mainGame->ReloadCBLimit();
+					mainGame->deckBuilder.RefreshLimitationStatus();
 				StartFilter(true);
 				break;
 			}
@@ -1054,11 +1055,7 @@ void DeckBuilder::StartFilter(bool force_refresh) {
 		filter_lv = parse_filter(mainGame->ebStar->getText(), filter_lvtype);
 		filter_scl = parse_filter(mainGame->ebScale->getText(), filter_scltype);
 	}
-	{
-		irr::gui::IGUIElement* costBox = mainGame->env->getRootGUIElement()->getElementFromId(EDITBOX_COST);
-		const wchar_t* txt = costBox ? static_cast<irr::gui::IGUIEditBox*>(costBox)->getText() : L"";
-		filter_cost = parse_filter(txt, filter_costtype);
-	}
+	filter_cost = parse_filter(mainGame->ebCost->getText(), filter_costtype);
 	FilterCards(force_refresh);
 	GetHoveredCard();
 }
@@ -1352,6 +1349,7 @@ void DeckBuilder::ClearSearch() {
 	mainGame->ebStar->setEnabled(false);
 	mainGame->ebScale->setEnabled(false);
 	mainGame->ebCardName->setText(L"");
+	mainGame->ebCost->setText(L"");
 	mainGame->scrFilter->setVisible(false);
 	searched_terms.clear();
 	ClearFilter();

@@ -340,6 +340,7 @@ struct deck_edit_page_elements {
 	irr::gui::IGUIStaticText* stRace;
 	irr::gui::IGUIStaticText* stAttack;
 	irr::gui::IGUIStaticText* stDefense;
+	irr::gui::IGUIStaticText* stCost;
 	irr::gui::IGUIStaticText* stStar;
 	irr::gui::IGUIStaticText* stSearch;
 	irr::gui::IGUIStaticText* stScale;
@@ -356,6 +357,7 @@ struct deck_edit_page_elements {
 	irr::gui::IGUIEditBox* ebAttack;
 	irr::gui::IGUIEditBox* ebDefense;
 	irr::gui::IGUIEditBox* ebCardName;
+	irr::gui::IGUIEditBox* ebCost;
 	irr::gui::IGUIButton* btnEffectFilter;
 	irr::gui::IGUIButton* btnStartFilter;
 	irr::gui::IGUIButton* btnClearFilter;

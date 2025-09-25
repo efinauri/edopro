@@ -54,3 +54,4 @@ NotoSansJP-Regular.otf
 /build_and_test.sh
 /CMakeLists.txt
 /repositories/babel-cdb/cards.delta.cdb
+/genesys.lflist.conf
